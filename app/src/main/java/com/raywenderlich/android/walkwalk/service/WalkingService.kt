@@ -32,48 +32,36 @@
  * THE SOFTWARE.
  */
 
-package com.raywenderlich.android.walkwalk
+package com.raywenderlich.android.walkwalk.service
 
+import android.app.Service
 import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.raywenderlich.android.walkwalk.WalkingWorker.Companion.WALKING_WORKER_NAME
-import com.raywenderlich.android.walkwalk.databinding.ActivityMainBinding
-import com.raywenderlich.android.walkwalk.service.WalkingService
-import java.util.concurrent.TimeUnit
+import android.os.IBinder
+import android.widget.Toast
+import androidx.lifecycle.LifecycleService
+import com.raywenderlich.android.walkwalk.NotificationUtility
+import com.raywenderlich.android.walkwalk.StepCountingUtility
 
-/**
- * Main Screen
- */
-class MainActivity : AppCompatActivity() {
+class WalkingService : Service() {
 
-  lateinit var binding: ActivityMainBinding
+  private val notificationUtility by lazy { NotificationUtility(this) }
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.AppTheme)
-    super.onCreate(savedInstanceState)
-    binding = ActivityMainBinding.inflate(layoutInflater)
-    setContentView(binding.root)
+  override fun onCreate() {
+    super.onCreate()
 
-    ContextCompat.startForegroundService(this, Intent(this, WalkingService::class.java))
+    Toast.makeText(this, "Service started", Toast.LENGTH_LONG).show()
+    startForeground(NotificationUtility.NOTIFICATION_ID, notificationUtility.getNotification())
 
-    startWorker()
+ /*   StepCountingUtility.stepCount.observe(this) {
+      notificationUtility.updateNotification(it.toString())
+    }*/
   }
 
-  private fun startWorker() {
-    val walkingWorkerRequest =
-      PeriodicWorkRequestBuilder<WalkingWorker>(1, TimeUnit.MINUTES).build()
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    super.onStartCommand(intent, flags, startId)
 
-    WorkManager
-      .getInstance(this)
-      .enqueueUniquePeriodicWork(
-        WALKING_WORKER_NAME,
-        ExistingPeriodicWorkPolicy.KEEP,
-        walkingWorkerRequest
-      )
+    return START_NOT_STICKY
   }
+
+  override fun onBind(intent: Intent?): IBinder? = null
 }

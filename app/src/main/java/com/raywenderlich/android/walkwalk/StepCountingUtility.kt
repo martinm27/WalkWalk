@@ -34,11 +34,17 @@
 
 package com.raywenderlich.android.walkwalk
 
-import android.app.Service
-import android.content.Intent
-import android.os.IBinder
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
-class WalkingService : Service() {
+private const val STARTING_STEP_COUNT_VALUE = 0
 
-  override fun onBind(intent: Intent?): IBinder? = null
+object StepCountingUtility {
+
+  private val stepCountMutable = MutableLiveData(STARTING_STEP_COUNT_VALUE)
+  val stepCount: LiveData<Int> = stepCountMutable
+
+  fun setStepCount(stepCount: Int) {
+    stepCountMutable.postValue(stepCount)
+  }
 }

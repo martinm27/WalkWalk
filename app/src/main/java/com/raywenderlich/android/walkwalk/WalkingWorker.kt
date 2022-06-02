@@ -34,46 +34,51 @@
 
 package com.raywenderlich.android.walkwalk
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import com.raywenderlich.android.walkwalk.WalkingWorker.Companion.WALKING_WORKER_NAME
-import com.raywenderlich.android.walkwalk.databinding.ActivityMainBinding
-import com.raywenderlich.android.walkwalk.service.WalkingService
-import java.util.concurrent.TimeUnit
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import androidx.work.Worker
+import androidx.work.WorkerParameters
+import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * Main Screen
- */
-class MainActivity : AppCompatActivity() {
+class WalkingWorker(context: Context, workerParams: WorkerParameters) :
+  Worker(context, workerParams), SensorEventListener {
 
-  lateinit var binding: ActivityMainBinding
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.AppTheme)
-    super.onCreate(savedInstanceState)
-    binding = ActivityMainBinding.inflate(layoutInflater)
-    setContentView(binding.root)
-
-    ContextCompat.startForegroundService(this, Intent(this, WalkingService::class.java))
-
-    startWorker()
+  companion object {
+    const val WALKING_WORKER_NAME = "WalkingWorker"
   }
 
-  private fun startWorker() {
-    val walkingWorkerRequest =
-      PeriodicWorkRequestBuilder<WalkingWorker>(1, TimeUnit.MINUTES).build()
+  private val sensorStepCountLastValue = AtomicInteger()
 
-    WorkManager
-      .getInstance(this)
-      .enqueueUniquePeriodicWork(
-        WALKING_WORKER_NAME,
-        ExistingPeriodicWorkPolicy.KEEP,
-        walkingWorkerRequest
+  init {
+    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+    stepCounterSensor?.let {
+      sensorManager.registerListener(
+        this@WalkingWorker,
+        it,
+        SensorManager.SENSOR_DELAY_FASTEST
       )
+    }
+  }
+
+  override fun doWork(): Result {
+    StepCountingUtility.setStepCount(sensorStepCountLastValue.get())
+    return Result.success()
+  }
+
+  override fun onSensorChanged(event: SensorEvent?) {
+    event ?: return
+
+    event.values.firstOrNull()?.let {
+      sensorStepCountLastValue.set(it.toInt())
+    }
+  }
+
+  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    // Not needed for this use case
   }
 }
