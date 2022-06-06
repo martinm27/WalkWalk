@@ -32,64 +32,27 @@
  * THE SOFTWARE.
  */
 
-package com.raywenderlich.android.walkwalk
+package com.raywenderlich.android.walkwalk.receiver
 
-import android.Manifest
-import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import com.raywenderlich.android.walkwalk.databinding.ActivityMainBinding
+import android.telephony.ServiceState
 import com.raywenderlich.android.walkwalk.service.WalkingService
 
-/**
- * Main Screen
- */
-class MainActivity : AppCompatActivity() {
+class StartReceiver : BroadcastReceiver() {
 
-  lateinit var binding: ActivityMainBinding
-
-  private val requestPermissionLauncher = registerForActivityResult(
-      ActivityResultContracts.RequestPermission()
-  ) { isPermissionGranted ->
-    if (isPermissionGranted) {
-      startWalkingService()
-    } else {
-      Toast.makeText(this, "We need your permission in order to track your steps! :)", Toast.LENGTH_LONG).show()
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED && getServiceState(context) == ServiceState.STARTED) {
+            Intent(context, WalkingService::class.java).also {
+                it.action = Actions.START.name
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(it)
+                } else {
+                    context.startService(it)
+                }
+            }
+        }
     }
-  }
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.AppTheme)
-    super.onCreate(savedInstanceState)
-    binding = ActivityMainBinding.inflate(layoutInflater)
-    setContentView(binding.root)
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      checkActivityRecognitionPermission()
-    } else {
-      startWalkingService()
-    }
-  }
-
-  @SuppressLint("InlinedApi")
-  private fun checkActivityRecognitionPermission() {
-    when (PackageManager.PERMISSION_GRANTED) {
-      ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) -> {
-        startWalkingService()
-      }
-      else -> {
-        requestPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
-      }
-    }
-  }
-
-  private fun startWalkingService() {
-    ContextCompat.startForegroundService(this, Intent(this, WalkingService::class.java))
-  }
 }

@@ -35,16 +35,23 @@
 package com.raywenderlich.android.walkwalk.service
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.IBinder
 import android.widget.Toast
-import androidx.lifecycle.LifecycleService
-import com.raywenderlich.android.walkwalk.NotificationUtility
-import com.raywenderlich.android.walkwalk.StepCountingUtility
+import com.raywenderlich.android.walkwalk.utility.NotificationUtility
+import java.util.concurrent.atomic.AtomicInteger
 
-class WalkingService : Service() {
+private const val MICROSECONDS_IN_ONE_MINUTE: Long = 60000000
+
+class WalkingService : Service(), SensorEventListener {
 
   private val notificationUtility by lazy { NotificationUtility(this) }
+  private val sensorStepCountLastValue = AtomicInteger()
 
   override fun onCreate() {
     super.onCreate()
@@ -52,16 +59,53 @@ class WalkingService : Service() {
     Toast.makeText(this, "Service started", Toast.LENGTH_LONG).show()
     startForeground(NotificationUtility.NOTIFICATION_ID, notificationUtility.getNotification())
 
- /*   StepCountingUtility.stepCount.observe(this) {
-      notificationUtility.updateNotification(it.toString())
-    }*/
+    reRegisterSensor()
+  }
+
+  private fun reRegisterSensor() {
+    val sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+
+    try {
+      sensorManager.unregisterListener(this)
+    } catch (e: Exception) {
+      println(e.printStackTrace())
+    }
+
+    val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+    stepCounterSensor?.let {
+      sensorManager.registerListener(
+          this@WalkingService,
+          it,
+          SensorManager.SENSOR_DELAY_FASTEST,
+          MICROSECONDS_IN_ONE_MINUTE.toInt()
+      )
+    }
+  }
+
+  private fun updateNotification(stepCountValue: Int) {
+    if (stepCountValue != sensorStepCountLastValue.get()) {
+      sensorStepCountLastValue.set(stepCountValue)
+      notificationUtility.updateNotification(sensorStepCountLastValue.get().toString())
+    }
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     super.onStartCommand(intent, flags, startId)
 
-    return START_NOT_STICKY
+    return START_STICKY
   }
 
   override fun onBind(intent: Intent?): IBinder? = null
+
+  override fun onSensorChanged(event: SensorEvent?) {
+    event ?: return
+
+    event.values.firstOrNull()?.let {
+      updateNotification(it.toInt())
+    }
+  }
+
+  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+  }
 }

@@ -32,53 +32,9 @@
  * THE SOFTWARE.
  */
 
-package com.raywenderlich.android.walkwalk
+package com.raywenderlich.android.walkwalk.service
 
-import android.content.Context
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import androidx.work.Worker
-import androidx.work.WorkerParameters
-import java.util.concurrent.atomic.AtomicInteger
-
-class WalkingWorker(context: Context, workerParams: WorkerParameters) :
-  Worker(context, workerParams), SensorEventListener {
-
-  companion object {
-    const val WALKING_WORKER_NAME = "WalkingWorker"
-  }
-
-  private val sensorStepCountLastValue = AtomicInteger()
-
-  init {
-    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-
-    stepCounterSensor?.let {
-      sensorManager.registerListener(
-        this@WalkingWorker,
-        it,
-        SensorManager.SENSOR_DELAY_FASTEST
-      )
-    }
-  }
-
-  override fun doWork(): Result {
-    StepCountingUtility.setStepCount(sensorStepCountLastValue.get())
-    return Result.success()
-  }
-
-  override fun onSensorChanged(event: SensorEvent?) {
-    event ?: return
-
-    event.values.firstOrNull()?.let {
-      sensorStepCountLastValue.set(it.toInt())
-    }
-  }
-
-  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-    // Not needed for this use case
-  }
+enum class ForegroundServiceState {
+  STARTED,
+  STOPPED
 }

@@ -32,19 +32,27 @@
  * THE SOFTWARE.
  */
 
-package com.raywenderlich.android.walkwalk
+package com.raywenderlich.android.walkwalk.utility
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import android.content.Context
+import android.telephony.ServiceState
+import com.raywenderlich.android.walkwalk.service.ForegroundServiceState
 
-private const val STARTING_STEP_COUNT_VALUE = 0
+object SharedPreferencesUtility {
 
-object StepCountingUtility {
+  private const val FOREGROUND_SERVICE_STATE_PREFS = "FOREGROUND_SERVICE_STATE_VALUE"
+  private const val FOREGROUND_SERVICE_STATE_KEY = "FOREGROUND_SERVICE_STATE_KEY"
 
-  private val stepCountMutable = MutableLiveData(STARTING_STEP_COUNT_VALUE)
-  val stepCount: LiveData<Int> = stepCountMutable
+  fun setForegroundServiceState(context: Context, state: ForegroundServiceState) {
+    val sharedPrefs = context.getSharedPreferences(FOREGROUND_SERVICE_STATE_PREFS, 0)
+    sharedPrefs.edit()
+        .putString(FOREGROUND_SERVICE_STATE_KEY, state.name)
+        .apply()
+  }
 
-  fun setStepCount(stepCount: Int) {
-    stepCountMutable.postValue(stepCount)
+  fun getForegroundServiceState(context: Context): ForegroundServiceState {
+    val sharedPrefs = context.getSharedPreferences(FOREGROUND_SERVICE_STATE_PREFS, 0)
+    val value = sharedPrefs.getString(FOREGROUND_SERVICE_STATE_KEY, "")
+    return ForegroundServiceState.valueOf(value ?: ForegroundServiceState.STOPPED.name)
   }
 }
