@@ -34,15 +34,11 @@
 
 package com.raywenderlich.android.walkwalk.service
 
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
-import android.os.SystemClock
 import android.widget.Toast
 import com.raywenderlich.android.walkwalk.WalkingSensorListener
 import com.raywenderlich.android.walkwalk.utility.NotificationUtility
@@ -123,6 +119,7 @@ class WalkingService : Service() {
     }
   }
 
+/*
   override fun onTaskRemoved(rootIntent: Intent) {
     val restartServiceIntent = Intent(applicationContext, WalkingService::class.java).apply {
       setPackage(packageName)
@@ -139,6 +136,7 @@ class WalkingService : Service() {
     (applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
         .set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 1000, restartServicePendingIntent)
   }
+*/
 
   override fun onBind(intent: Intent?): IBinder? = null
 }

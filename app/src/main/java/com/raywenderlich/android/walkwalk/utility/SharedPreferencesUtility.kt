@@ -51,7 +51,7 @@ object SharedPreferencesUtility {
 
   fun getForegroundServiceState(context: Context): ForegroundServiceState {
     val sharedPrefs = context.getSharedPreferences(FOREGROUND_SERVICE_STATE_PREFS, 0)
-    val value = sharedPrefs.getString(FOREGROUND_SERVICE_STATE_KEY, "")
+    val value = sharedPrefs.getString(FOREGROUND_SERVICE_STATE_KEY,  ForegroundServiceState.STOPPED.name)
     return ForegroundServiceState.valueOf(value ?: ForegroundServiceState.STOPPED.name)
   }
 }
