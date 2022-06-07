@@ -32,26 +32,52 @@
  * THE SOFTWARE.
  */
 
-package com.raywenderlich.android.walkwalk.utility
+package com.raywenderlich.android.walkwalk
 
 import android.content.Context
-import com.raywenderlich.android.walkwalk.service.ForegroundServiceState
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 
-object SharedPreferencesUtility {
+private const val MICROSECONDS_IN_ONE_MINUTE: Long = 60000000
 
-  private const val FOREGROUND_SERVICE_STATE_PREFS = "FOREGROUND_SERVICE_STATE_PREFS"
-  private const val FOREGROUND_SERVICE_STATE_KEY = "FOREGROUND_SERVICE_STATE_KEY"
+class WalkingSensorListener(context: Context, private val onSensorValueChanged: (Int) -> Unit) : SensorEventListener {
 
-  fun setForegroundServiceState(context: Context, state: ForegroundServiceState) {
-    val sharedPrefs = context.getSharedPreferences(FOREGROUND_SERVICE_STATE_PREFS, 0)
-    sharedPrefs.edit()
-        .putString(FOREGROUND_SERVICE_STATE_KEY, state.name)
-        .apply()
+  private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+  private val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+
+  fun reRegisterSensor() {
+    deregisterSensor()
+
+    stepCounterSensor?.let {
+      sensorManager.registerListener(
+          this@WalkingSensorListener,
+          it,
+          SensorManager.SENSOR_DELAY_FASTEST,
+          MICROSECONDS_IN_ONE_MINUTE.toInt()
+      )
+    }
   }
 
-  fun getForegroundServiceState(context: Context): ForegroundServiceState {
-    val sharedPrefs = context.getSharedPreferences(FOREGROUND_SERVICE_STATE_PREFS, 0)
-    val value = sharedPrefs.getString(FOREGROUND_SERVICE_STATE_KEY, "")
-    return ForegroundServiceState.valueOf(value ?: ForegroundServiceState.STOPPED.name)
+  fun deregisterSensor() {
+    try {
+      sensorManager.unregisterListener(this)
+    } catch (e: Exception) {
+      println(e.printStackTrace())
+    }
   }
+
+  override fun onSensorChanged(event: SensorEvent?) {
+    event ?: return
+
+    event.values.firstOrNull()?.let {
+      onSensorValueChanged(it.toInt())
+    }
+  }
+
+  override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    // Not needed for our use case
+  }
+
 }

@@ -38,21 +38,27 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.telephony.ServiceState
+import com.raywenderlich.android.walkwalk.service.ForegroundServiceState
 import com.raywenderlich.android.walkwalk.service.WalkingService
+import com.raywenderlich.android.walkwalk.utility.SharedPreferencesUtility
 
 class StartReceiver : BroadcastReceiver() {
 
-    override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED && getServiceState(context) == ServiceState.STARTED) {
-            Intent(context, WalkingService::class.java).also {
-                it.action = Actions.START.name
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(it)
-                } else {
-                    context.startService(it)
-                }
-            }
+  override fun onReceive(context: Context, intent: Intent) {
+    if (shouldServiceBeRestarted(intent, context)) {
+      Intent(context, WalkingService::class.java).apply {
+        action = ForegroundServiceState.STARTED.name
+      }.let {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          context.startForegroundService(it)
+        } else {
+          context.startService(it)
         }
+      }
     }
+  }
+
+  private fun shouldServiceBeRestarted(intent: Intent, context: Context) =
+      intent.action == Intent.ACTION_BOOT_COMPLETED
+          && SharedPreferencesUtility.getForegroundServiceState(context) == ForegroundServiceState.STARTED
 }
