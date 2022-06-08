@@ -38,56 +38,19 @@ import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-
-private const val MICROSECONDS_IN_ONE_MINUTE: Long = 60000000
-private const val INITIAL_STEP_COUNT_VALUE = 0
 
 class WalkingSensorListener(context: Context, private val onSensorValueChanged: (Int) -> Unit) : SensorEventListener {
 
-  private var stepsCount = INITIAL_STEP_COUNT_VALUE
-
-  private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-  private val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-
   fun reRegisterSensor() {
-    deregisterSensor()
-
-    onSensorValueChanged(stepsCount)
-
-    stepCounterSensor?.let {
-      sensorManager.registerListener(
-          this@WalkingSensorListener,
-          it,
-          SensorManager.SENSOR_DELAY_FASTEST,
-          MICROSECONDS_IN_ONE_MINUTE.toInt()
-      )
-    }
+    // TODO: Re-register sensor
   }
 
   fun deregisterSensor() {
-    try {
-      stepsCount = INITIAL_STEP_COUNT_VALUE
-      sensorManager.unregisterListener(this)
-    } catch (e: Exception) {
-      println(e.printStackTrace())
-    }
+    // TODO: Deregister sensor
   }
 
   override fun onSensorChanged(event: SensorEvent?) {
-    event ?: return
-
-    event.values.firstOrNull()?.let {
-      val currentValue = stepsCount
-
-      if (currentValue == INITIAL_STEP_COUNT_VALUE) {
-        stepsCount = it.toInt()
-        onSensorValueChanged(currentValue)
-      } else {
-        val difference = it.toInt() - currentValue
-        onSensorValueChanged(difference)
-      }
-    }
+    // TODO: Add functionality of tracking the step count updates
   }
 
   override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
