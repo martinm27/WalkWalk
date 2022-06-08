@@ -32,21 +32,20 @@
  * THE SOFTWARE.
  */
 
-package com.raywenderlich.android.walkwalk
+package com.raywenderlich.android.walkwalk.sensor
 
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import java.util.concurrent.atomic.AtomicInteger
 
 private const val MICROSECONDS_IN_ONE_MINUTE: Long = 60000000
 private const val INITIAL_STEP_COUNT_VALUE = 0
 
 class WalkingSensorListener(context: Context, private val onSensorValueChanged: (Int) -> Unit) : SensorEventListener {
 
-  private val stepsCount = AtomicInteger(INITIAL_STEP_COUNT_VALUE)
+  private var stepsCount = INITIAL_STEP_COUNT_VALUE
 
   private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
   private val stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
@@ -54,7 +53,7 @@ class WalkingSensorListener(context: Context, private val onSensorValueChanged: 
   fun reRegisterSensor() {
     deregisterSensor()
 
-    onSensorValueChanged(stepsCount.get())
+    onSensorValueChanged(stepsCount)
 
     stepCounterSensor?.let {
       sensorManager.registerListener(
@@ -68,7 +67,7 @@ class WalkingSensorListener(context: Context, private val onSensorValueChanged: 
 
   fun deregisterSensor() {
     try {
-      stepsCount.set(0)
+      stepsCount = INITIAL_STEP_COUNT_VALUE
       sensorManager.unregisterListener(this)
     } catch (e: Exception) {
       println(e.printStackTrace())
@@ -79,10 +78,10 @@ class WalkingSensorListener(context: Context, private val onSensorValueChanged: 
     event ?: return
 
     event.values.firstOrNull()?.let {
-      val currentValue = stepsCount.get()
+      val currentValue = stepsCount
 
       if (currentValue == INITIAL_STEP_COUNT_VALUE) {
-        stepsCount.set(it.toInt())
+        stepsCount = it.toInt()
         onSensorValueChanged(currentValue)
       } else {
         val difference = it.toInt() - currentValue

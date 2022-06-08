@@ -40,7 +40,7 @@ import android.content.Intent
 import android.os.IBinder
 import android.os.PowerManager
 import android.widget.Toast
-import com.raywenderlich.android.walkwalk.WalkingSensorListener
+import com.raywenderlich.android.walkwalk.sensor.WalkingSensorListener
 import com.raywenderlich.android.walkwalk.utility.NotificationUtility
 import com.raywenderlich.android.walkwalk.utility.SharedPreferencesUtility
 import java.util.concurrent.atomic.AtomicInteger

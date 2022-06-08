@@ -34,6 +34,7 @@
 
 package com.raywenderlich.android.walkwalk.receiver
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -44,6 +45,7 @@ import com.raywenderlich.android.walkwalk.utility.SharedPreferencesUtility
 
 class StartReceiver : BroadcastReceiver() {
 
+  @SuppressLint("UnsafeProtectedBroadcastReceiver")
   override fun onReceive(context: Context, intent: Intent) {
     if (shouldServiceBeRestarted(intent, context)) {
       Intent(context, WalkingService::class.java).apply {
