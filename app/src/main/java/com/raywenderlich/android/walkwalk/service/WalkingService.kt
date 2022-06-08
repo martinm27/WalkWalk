@@ -119,24 +119,5 @@ class WalkingService : Service() {
     }
   }
 
-/*
-  override fun onTaskRemoved(rootIntent: Intent) {
-    val restartServiceIntent = Intent(applicationContext, WalkingService::class.java).apply {
-      setPackage(packageName)
-    }
-
-    val restartServicePendingIntent: PendingIntent =
-        PendingIntent.getService(
-            this,
-            1,
-            restartServiceIntent,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
-            else PendingIntent.FLAG_ONE_SHOT)
-
-    (applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
-        .set(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + 1000, restartServicePendingIntent)
-  }
-*/
-
   override fun onBind(intent: Intent?): IBinder? = null
 }
