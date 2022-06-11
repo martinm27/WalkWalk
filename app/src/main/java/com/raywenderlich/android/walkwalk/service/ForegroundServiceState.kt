@@ -34,7 +34,4 @@
 
 package com.raywenderlich.android.walkwalk.service
 
-enum class ForegroundServiceState {
-  STARTED,
-  STOPPED
-}
+enum class ForegroundServiceState { STARTED, STOPPED }
